@@ -1,92 +1,196 @@
-# Welcome to the new nnU-Net!
+<h1 align="center">
+  Brain MRI Analysis with nnU-Net — Tumor & Grey Matter
+</h1>
 
-Click [here](https://github.com/MIC-DKFZ/nnUNet/tree/nnunetv1) if you were looking for the old one instead.
-(documentation/assets/brain.png)
-Coming from V1? Check out the [TLDR Migration Guide](documentation/tldr_migration_guide_from_v1.md). Reading the rest of the documentation is still strongly recommended ;-)
+<p align="center">
+  <img src="documentation/assets/Brain.png" alt="Brain illustration" width="300">
+</p>
 
-## **2024-04-18 UPDATE: New residual encoder UNet presets available!**
-Residual encoder UNet presets substantially improve segmentation performance.
-They ship for a variety of GPU memory targets. It's all awesome stuff, promised! 
-Read more :point_right: [here](documentation/resenc_presets.md) :point_left:
+<p align="center">
+ Hadar Shklarnik <br>
+ Shir Klinshtern
+</p>
 
-Also check out our [new paper](https://arxiv.org/pdf/2404.09556.pdf) on systematically benchmarking recent developments in medical image segmentation. You might be surprised!
+<p align="center">
+  <a href="https://youtu.be/F57_KVQ65NU" target="_blank">
+    <img src="https://img.shields.io/badge/Watch%20Video-YouTube-red?logo=youtube" alt="Watch Video on YouTube"/>
+  </a>
+</p>
 
-# What is nnU-Net?
-Image datasets are enormously diverse: image dimensionality (2D, 3D), modalities/input channels (RGB image, CT, MRI, microscopy, ...), 
-image sizes, voxel sizes, class ratio, target structure properties and more change substantially between datasets. 
-Traditionally, given a new problem, a tailored solution needs to be manually designed and optimized  - a process that 
-is prone to errors, not scalable and where success is overwhelmingly determined by the skill of the experimenter. Even 
-for experts, this process is anything but simple: there are not only many design choices and data properties that need to 
-be considered, but they are also tightly interconnected, rendering reliable manual pipeline optimization all but impossible! 
+Please list any hyper-parameters as part of the README file!!!!!!!!!!!!!!!!!!!!!
 
-![nnU-Net overview](documentation/assets/nnU-Net_overview.png)
+## Table of Contents
 
-**nnU-Net is a semantic segmentation method that automatically adapts to a given dataset. It will analyze the provided 
-training cases and automatically configure a matching U-Net-based segmentation pipeline. No expertise required on your 
-end! You can simply train the models and use them for your application**.
+- [Project Overview](#project-overview)
+- [Repository Structure](#repository-structure)
+- [Files In The Repository](#files-in-the-repository)
+- [Installation](#installation)
+- [Dataset](#dataset)
+- [Trained Models](#trained-models)
+- [Sources and References](#sources-and-references)
+- [License](#license)
 
-Upon release, nnU-Net was evaluated on 23 datasets belonging to competitions from the biomedical domain. Despite competing 
-with handcrafted solutions for each respective dataset, nnU-Net's fully automated pipeline scored several first places on 
-open leaderboards! Since then nnU-Net has stood the test of time: it continues to be used as a baseline and method 
-development framework ([9 out of 10 challenge winners at MICCAI 2020](https://arxiv.org/abs/2101.00232) and 5 out of 7 
-in MICCAI 2021 built their methods on top of nnU-Net, 
- [we won AMOS2022 with nnU-Net](https://amos22.grand-challenge.org/final-ranking/))!
+## Project Overview
+### Medical - TO CHANGE
+In this project, we aim to design a robust model for detecting and classifying Alzheimer disease using MRI brain images. The model simulates a radiologist's diagnostic process by classifying images into four severity levels. We evaluate and compare several well-known unsupervised pre-trained models for classification tasks. Then, we train and evaluate these models under adversarial attacks, which can significantly reduce model's performance. By combining the models, we aim to create an ensemble, a unified and robust model that maximizes resilience against adversarial attacks while maintaining high classification performance.
 
-Please cite the [following paper](https://www.google.com/url?q=https://www.nature.com/articles/s41592-020-01008-z&sa=D&source=docs&ust=1677235958581755&usg=AOvVaw3dWL0SrITLhCJUBiNIHCQO) when using nnU-Net:
+### What is nnU-Net?
+nnU-Net (no new U-Net) is an automated deep learning framework for semantic segmentation of medical images (2D & 3D, any modality like MRI, CT, microscopy).
+Instead of manually designing a model for each dataset — a process that’s complex, error-prone, and highly dependent on expert skill — nnU-Net:
+Analyzes your dataset to create a “dataset fingerprint.”
+Automatically configures preprocessing, network architecture, training, and post-processing steps.
+Trains the best U-Net variant for your data with minimal input from you.
+It’s been tested on 23 biomedical datasets, consistently achieving top leaderboard results, and has become a widely used baseline in segmentation challenges.
+Given a dataset, nnU-Net may create 2D U-Net – for 2D and 3D datasets. The pipeline parameters fall into three types:
+Fixed – Always used (loss function, main data augmentation, learning rate schedule).
+Rule-based – Derived from dataset fingerprint using heuristics (network depth, patch size, batch size).
+Empirical – Chosen through trial-and-error (best configuration, post-processing strategy).
 
-    Isensee, F., Jaeger, P. F., Kohl, S. A., Petersen, J., & Maier-Hein, K. H. (2021). nnU-Net: a self-configuring 
-    method for deep learning-based biomedical image segmentation. Nature methods, 18(2), 203-211.
+The project includes the following steps:
+
+1. **Transfer Learning:** We used transfer learning to fine-tune and extract features from three well-known unsupervised pre-trained models to perform well on our specific task: DINOv2, ResNet34 and EfficientNet-B0.
+
+2. **Adversarial Attacks Implementation:** We performed two adversarial attacks on each one of the models: Fast Gradient Sign Method (FGSM) and Projected Gradient Descent (PGD), which were found to be effective attacks[<sup>[2]</sup>](https://arxiv.org/abs/2303.14133).
+
+4. **Adversarial Training:** To enhance model robustness, we trained these models with adversarial examples, using the PGD attack[<sup>[3]</sup>](https://arxiv.org/abs/1706.06083).A weighted cross-entropy loss combined the standard loss with an adversarial component scaled by the adv_weight parameter. For models that required a different adversarial training approach, we applied Curriculum Adversarial Training[<sup>[4]</sup>](https://arxiv.org/abs/1805.04807).
+
+5. **Ensemble Models:** Finally, we combined these three models using weighted ensemble approach to create a robust model, without affecting performance.
+
+The project is implemented in Python using the PyTorch framework, which allows us to build and train the models efficiently throughout these steps.
+
+## Repository Structure
+
+| Directory Name | Content |
+|----------------|---------|
+| `assets` | Contains images for each model, including confusion matrices, loss curves, and accuracy curves. |
+| `checkpoints` | An empty directory for saving notebook's output: Optuna hyperparameters and trained models. |
+| `dataset` | Contains two sub-directories: `raw_dataset` with the original raw data, and `dataset_variables` with processed dataset splitted into train, validation and test sets. |
+| `env` | Contains the project environment configuration file and the requirements file. |
+| `models` | Contains all model's training notebooks. |
+| `utils` | Contains utility flies including `optuna_search.py` for hyperparameter optimization, `utils_funcs.py` with general helper functions, and `Grad_cam.py` for generating Grad-CAM visualizations. |
+
+## Files In The Repository
+
+| File Name | Description |
+|-----------|-------------|
+| `dataset/prepare_dataset.ipynb` | Notebook used to split the raw dataset into train, validation and test sets and applies a resize transformation of 224x224 pixels. |
+| `dataset/dataset_variables/*.pt` | Processed dataset files: `train_set.pt`, `validation_set.pt`, and `test_set.pt` (created by `prepare_dataset.ipynb`). |
+| `env/requirements.txt` | List of required Python packages for setting up the environment. |
+| `env/project_env.yaml` | Environment configuration file. |
+| `utils/optuna_search.py` | Script for performing hyperparameters search using Optuna. It allows customization of epochs, trials and hyperparameters. |
+| `utils/Grad_cam.py` | Script for generating Grad-CAM heatmaps. User must specify required parameters as per function definitions. |
+| `utils/utils_funcs.py` | Contains general utility functions such as saving models, loading images, displaying graphs, and training. |
+| `models/def_models.py` | Definition of class objects used for the trained models. |
+| `models/*_model.ipynb` | Model-specific notebook (e.g. `resnet_model.ipynb`). Used for data loading, training, evaluation and results generation: accuracy, confusion matrix, loss curve and accuracy curve. |
+| `models/*_model_atk.ipynb` | Adversarial training model-specific notebook (e.g. `resnet_model_atk.ipynb`). Loads a pre-trained model, applies adversarial attacks, and trains the model under these attacks. |
 
 
-## What can nnU-Net do for you?
-If you are a **domain scientist** (biologist, radiologist, ...) looking to analyze your own images, nnU-Net provides 
-an out-of-the-box solution that is all but guaranteed to provide excellent results on your individual dataset. Simply 
-convert your dataset into the nnU-Net format and enjoy the power of AI - no expertise required!
+## Installation
 
-If you are an **AI researcher** developing segmentation methods, nnU-Net:
-- offers a fantastic out-of-the-box applicable baseline algorithm to compete against
-- can act as a method development framework to test your contribution on a large number of datasets without having to 
-tune individual pipelines (for example evaluating a new loss function)
-- provides a strong starting point for further dataset-specific optimizations. This is particularly used when competing 
-in segmentation challenges
-- provides a new perspective on the design of segmentation methods: maybe you can find better connections between 
-dataset properties and best-fitting segmentation pipelines?
+#### General Prerequisites
 
-## What is the scope of nnU-Net?
-nnU-Net is built for semantic segmentation. It can handle 2D and 3D images with arbitrary 
-input modalities/channels. It can understand voxel spacings, anisotropies and is robust even when classes are highly
-imbalanced.
+| Library           | Version           |
+|-------------------|-------------------|
+| `Python`          | `3.10`            |
+| `torch`           | `>= 1.4.0`        |
+| `matplotlib`      | `>= 3.7.1`        |
+| `numpy`           | `>= 1.24.3`       |
+| `opencv`          | `>= 4.5.0`        |
+| `pandas`          | `>= 1.5.0`        |
+| `tqdm`            | `>= 4.65.0`       |
+| `scipy`           | `>= 1.8.1`        |
+| `seaborn`         | `>= 0.11.2`       |
+| `plotly`          | `>= 5.7.0`        |
+| `notebook`        | `>= 6.5.4`        |
+| `ipywidgets`      | `>= 7.6.0`        |
+| `torchmetrics`    | `>= 0.10.0`       |
+| `optuna`          | `>= 2.10.0`       |
+| `fvcore`          | `>= 0.1.5`        |
+| `iopath`          | `>= 0.1.9`        |
+| `submitit`        | `>= 1.3.0`        |
+| `kornia`          | `>= 0.6.0`        |
+| `prettytable`     | `>= 2.4.0`        |
+| `pickleshare`     | `>= 0.7.5`        |
+| `torchcam`        | `>= 0.1.2`        |
+| `torchattacks`    | `>= 0.2.0`        |
 
-nnU-Net relies on supervised learning, which means that you need to provide training cases for your application. The number of 
-required training cases varies heavily depending on the complexity of the segmentation problem. No 
-one-fits-all number can be provided here! nnU-Net does not require more training cases than other solutions - maybe 
-even less due to our extensive use of data augmentation. 
+#### DINOv2 Specific Requirements
 
-nnU-Net expects to be able to process entire images at once during preprocessing and postprocessing, so it cannot 
-handle enormous images. As a reference: we tested images from 40x40x40 pixels all the way up to 1500x1500x1500 in 3D 
-and 40x40 up to ~30000x30000 in 2D! If your RAM allows it, larger is always possible.
+| Library           | Version             |
+|-------------------|---------------------|
+| `torch`           | `== 2.0.0`           |
+| `torchvision`     | `== 0.15.0`          |
+| `omegaconf`       | `>= 2.3.0`           |
+| `torchmetrics`    | `== 0.10.3`          |
+| `fvcore`          | `>= 0.1.6`           |
+| `iopath`          | `>= 0.1.9`           |
+| `submitit`        | `>= 1.4.5`           |
+| `xformers`        | `== 0.0.18`          |
+| `cuml-cu11`       | `>= 23.04`           |
 
-## How does nnU-Net work?
-Given a new dataset, nnU-Net will systematically analyze the provided training cases and create a 'dataset fingerprint'. 
-nnU-Net then creates several U-Net configurations for each dataset: 
-- `2d`: a 2D U-Net (for 2D and 3D datasets)
-- `3d_fullres`: a 3D U-Net that operates on a high image resolution (for 3D datasets only)
-- `3d_lowres` → `3d_cascade_fullres`: a 3D U-Net cascade where first a 3D U-Net operates on low resolution images and 
-then a second high-resolution 3D U-Net refined the predictions of the former (for 3D datasets with large image sizes only)
 
-**Note that not all U-Net configurations are created for all datasets. In datasets with small image sizes, the 
-U-Net cascade (and with it the 3d_lowres configuration) is omitted because the patch size of the full 
-resolution U-Net already covers a large part of the input images.**
+To set up the required dependencies, please follow one of the options below:
 
-nnU-Net configures its segmentation pipelines based on a three-step recipe:
-- **Fixed parameters** are not adapted. During development of nnU-Net we identified a robust configuration (that is, certain architecture and training properties) that can 
-simply be used all the time. This includes, for example, nnU-Net's loss function, (most of the) data augmentation strategy and learning rate.
-- **Rule-based parameters** use the dataset fingerprint to adapt certain segmentation pipeline properties by following 
-hard-coded heuristic rules. For example, the network topology (pooling behavior and depth of the network architecture) 
-are adapted to the patch size; the patch size, network topology and batch size are optimized jointly given some GPU 
-memory constraint. 
-- **Empirical parameters** are essentially trial-and-error. For example the selection of the best U-net configuration 
-for the given dataset (2D, 3D full resolution, 3D low resolution, 3D cascade) and the optimization of the postprocessing strategy.
+##### 1. [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html) (Recommended)
+Clone this repository and then create and activate the conda environment (`env/project_env.yaml`) using the following commands:
+
+```
+conda env create -f env/project_env.yaml
+conda activate project_env
+```
+##### 2. Pip Install
+
+Clone this repository and then use the provided `env/requirements.txt` file to install the required dependencies:
+
+```
+pip install -r env/requirements.txt
+```
+
+## Dataset
+
+We used a pre-processed [dataset](https://www.kaggle.com/datasets/lukechugh/best-alzheimer-mri-dataset-99-accuracy) of 11,519 axial MRI brain images: 6,400 images from real patients and 5,119 synthetic images that were developed to rectify the class imbalance of the original dataset. The images are classified into four categories: "Non Demented", "Very Mild Demented", "Mild Demented", and "Moderate Demented". Each category had 100, 70, 28, and 2 patients, respectively, and each patient's brain was sliced into 32 horizontal axial MRIs. The images have a resolution of 128x128 pixels and are in the “.jpg” format. All images have been pre-processed to remove the skull.
+
+The dataset was split according to the train-validation-test methodology: the train set contains 8,192 real and synthetic images, the validation set contains 2,048 real and synthetic images and the test set contains 1,279 real images only. We resized the images into 224x224 pixels to match the input size required for the pre-trained models.
+
+## Trained Models
+
+We provide the files of our trained models, as well as the hyperparameters used for the training. These files can be loaded to the notebooks as mentioned in the next section.
+
+| Model Type                               | Google Drive Link                                                                                | Optuna Params                                                                                |
+|------------------------------------------|-------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| DINOv2                                   | [Download .pth file](https://drive.google.com/file/d/1jABpNVpMTrehBhL6ilm2e0gTx2C7fQyd/view?usp=drive_link)      | [Download JSON file](https://drive.google.com/file/d/1EyuLRh44TgUEpMn5ErN77XdZEmFZ8MNd/view?usp=drive_link) |
+| DINOv2 with adversarial attacks          | [Download .pth file](https://drive.google.com/file/d/1kS40XoH3PYkCkNTUJ-Wc3N7iYhHnrPDz/view?usp=drive_link)       | [Download JSON file](https://drive.google.com/file/d/1APagdTEOdTKxP4b-d7ha6dohBSdXZtU0/view?usp=drive_link) | 
+| Resnet34                                 | [Download .pth file](https://drive.google.com/file/d/1f4WCkcKVt7FLxv7hUNJgPGbOUJ_4tIoy/view?usp=drive_link)       | [Download JSON file](https://drive.google.com/file/d/1YqA7IwmBaYVneSMh4Gi_RhUTiJxZwbAj/view?usp=drive_link) | 
+| Resnet34 with adversarial attacks        | [Download .pth file](https://drive.google.com/file/d/1tDKBQEXTm0mY05oycfMrKSlAINWA8qbD/view?usp=drive_link)       | [Download JSON file](https://drive.google.com/file/d/1cR0OhtmPFjiyqRkifCl4h8s_gSXUGcvE/view?usp=drive_link) | 
+| Efficientnet-B0                          | [Download .pth file](https://drive.google.com/file/d/1SuudU3uv2FCtJiD1XKdfpAPaMnk70Qhw/view?usp=drive_link)       | [Download JSON file](https://drive.google.com/file/d/1Bha09qvH3MlP112wm-j9j_NqijC5nPFL/view?usp=drive_link) | 
+| Efficientnet-B0 with adversarial attacks | [Download .pth file](https://drive.google.com/file/d/14SlvfDhUDeCw8kxulTuVMP-7FphWQdMJ/view?usp=drive_link)        | [Download JSON file](https://drive.google.com/file/d/1k2nigU0jFDCMz0TbEBUD6cUz_bS2bJFK/view?usp=drive_link) | 
+
+## Sources and References
+
+[1] Madry, A., Makelov, A., Schmidt, L., Tsipras, D., & Vladu, A. (2017). Understanding adversarial attacks on deep learning based medical image analysis systems. [arXiv:1907.10456](https://arxiv.org/abs/1907.10456)
+
+[2] Zhang, H., Li, Y., & Chen, X. (2023). Adversarial Attack and Defense for Medical Image Analysis: Methods and Applications. [arXiv:2308.14597](https://arxiv.org/abs/2308.14597)
+
+[3] Madry, A., Makelov, A., Schmidt, L., Tsipras, D., & Vladu, A. (2018). Towards Deep Learning Models Resistant to Adversarial Attacks. [arXiv:1706.06083](https://arxiv.org/abs/1706.06083)
+
+[4] Cai, Q.-Z., Du, M., Liu, C., & Song, D. (2018). Curriculum Adversarial Training. [arXiv:1805.04807](https://arxiv.org/abs/1805.04807)
+
+[5] Luke Chugh. (2021). Best Alzheimer MRI dataset. Kaggle dataset. [https://www.kaggle.com/datasets/lukechugh/best-alzheimer-mri-dataset-99-accuracy](https://www.kaggle.com/datasets/lukechugh/best-alzheimer-mri-dataset-99-accuracy)
+
+[6] Optuna. (2023). Optuna: A hyperparameter optimization framework. GitHub repository. [https://github.com/optuna/optuna](https://github.com/optuna/optuna)
+
+[7] Facebook Research. (2023). DINOv2. GitHub repository. [https://github.com/facebookresearch/dinov2](https://github.com/facebookresearch/dinov2)
+
+[8] Chen, X., Zhang, H., & Li, Y. (2022). Exploring adversarial attacks and defenses in vision transformers trained with DINO. [arXiv:2206.06761](https://arxiv.org/abs/2206.06761)
+
+[9] Gil, J. (2020). PyTorch Grad-CAM. GitHub repository. [https://github.com/jacobgil/pytorch-grad-cam](https://github.com/jacobgil/pytorch-grad-cam)
+
+[10] Hoki. (2020). Torchattack: PyTorch adversarial attack library. GitHub repository. [https://github.com/Harry24k/torchattacks](https://github.com/Harry24k/torchattacks)
+
+## License
+
+This project is licensed under the MIT License - see the `LICENSE.md` file for details.
+
 
 ## How to get started?
 Read these:
@@ -108,37 +212,3 @@ Competitions:
 - [AutoPET II](documentation/competitions/AutoPETII.md)
 
 [//]: # (- [Ignore label]&#40;documentation/ignore_label.md&#41;)
-
-## Where does nnU-Net perform well and where does it not perform?
-nnU-Net excels in segmentation problems that need to be solved by training from scratch, 
-for example: research applications that feature non-standard image modalities and input channels,
-challenge datasets from the biomedical domain, majority of 3D segmentation problems, etc . We have yet to find a 
-dataset for which nnU-Net's working principle fails!
-
-Note: On standard segmentation 
-problems, such as 2D RGB images in ADE20k and Cityscapes, fine-tuning a foundation model (that was pretrained on a large corpus of 
-similar images, e.g. Imagenet 22k, JFT-300M) will provide better performance than nnU-Net! That is simply because these 
-models allow much better initialization. Foundation models are not supported by nnU-Net as 
-they 1) are not useful for segmentation problems that deviate from the standard setting (see above mentioned 
-datasets), 2) would typically only support 2D architectures and 3) conflict with our core design principle of carefully adapting 
-the network topology for each dataset (if the topology is changed one can no longer transfer pretrained weights!) 
-
-## What happened to the old nnU-Net?
-The core of the old nnU-Net was hacked together in a short time period while participating in the Medical Segmentation 
-Decathlon challenge in 2018. Consequently, code structure and quality were not the best. Many features 
-were added later on and didn't quite fit into the nnU-Net design principles. Overall quite messy, really. And annoying to work with.
-
-nnU-Net V2 is a complete overhaul. The "delete everything and start again" kind. So everything is better 
-(in the author's opinion haha). While the segmentation performance [remains the same](https://docs.google.com/spreadsheets/d/13gqjIKEMPFPyMMMwA1EML57IyoBjfC3-QCTn4zRN_Mg/edit?usp=sharing), a lot of cool stuff has been added. 
-It is now also much easier to use it as a development framework and to manually fine-tune its configuration to new 
-datasets. A big driver for the reimplementation was also the emergence of [Helmholtz Imaging](http://helmholtz-imaging.de), 
-prompting us to extend nnU-Net to more image formats and domains. Take a look [here](documentation/changelog.md) for some highlights.
-
-# Acknowledgements
-<img src="documentation/assets/HI_Logo.png" height="100px" />
-
-<img src="documentation/assets/dkfz_logo.png" height="100px" />
-
-nnU-Net is developed and maintained by the Applied Computer Vision Lab (ACVL) of [Helmholtz Imaging](http://helmholtz-imaging.de) 
-and the [Division of Medical Image Computing](https://www.dkfz.de/en/mic/index.php) at the 
-[German Cancer Research Center (DKFZ)](https://www.dkfz.de/en/index.html).
